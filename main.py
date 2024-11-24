@@ -8,39 +8,19 @@ from transformers import TrainingArguments # import TrainingArguments
 from torch.nn import functional as F # import functional as F
 import numpy as np # import numpy
 
-# Load dataset
-from datasets import load_dataset
-dataset = load_dataset("ag_news")
-
-# Check label distribution
+# Load dataset from Excel file
 import pandas as pd
-df = pd.DataFrame(dataset['train'])
+df = pd.read_excel("code_labels.xlsx") # Load your excel file
+
+# Check label distribution (optional, but recommended)
 df.label.value_counts(normalize=True)
 
-# Sample data and split into train, test, and validation sets
-label_1_df = df[df['label'] == 0].sample(frac=1).reset_index(drop=True)
-label_2_df = df[df['label'] == 1].sample(frac=1).reset_index(drop=True)
-label_3_df = df[df['label'] == 2].sample(frac=1).reset_index(drop=True)
-label_4_df = df[df['label'] == 3].sample(frac=1).reset_index(drop=True)
+# Sample data and split into train, test, and validation sets (adjust sample sizes as needed)
+train_df = df.sample(frac=0.7, random_state=42) # 70% for training
+remaining_df = df.drop(train_df.index)
+val_df = remaining_df.sample(frac=0.5, random_state=42) # 15% for validation
+test_df = remaining_df.drop(val_df.index) # 15% for testing
 
-# Splitting each label dataframe into train, test, and validation sets
-label_1_train = label_1_df.iloc[:2000]
-label_1_test = label_1_df.iloc[2000:2500]
-label_1_val = label_1_df.iloc[2500:3000]
-label_2_train = label_2_df.iloc[:2000]
-label_2_test = label_2_df.iloc[2000:2500]
-label_2_val = label_2_df.iloc[2500:3000]
-label_3_train = label_3_df.iloc[:2000]
-label_3_test = label_3_df.iloc[2000:2500]
-label_3_val = label_3_df.iloc[2500:3000]
-label_4_train = label_4_df.iloc[:2000]
-label_4_test = label_4_df.iloc[2000:2500]
-label_4_val = label_4_df.iloc[2500:3000]
-
-# Concatenate the splits back together
-train_df = pd.concat([label_1_train, label_2_train, label_3_train, label_4_train])
-test_df = pd.concat([label_1_test, label_2_test, label_3_test, label_4_test])
-val_df = pd.concat([label_1_val, label_2_val, label_3_val, label_4_val])
 
 # Convert to Hugging Face Dataset objects
 from datasets import DatasetDict, Dataset
